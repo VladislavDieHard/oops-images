@@ -7,6 +7,7 @@ import {TagModule} from "../tag/tag.module";
 import {UserModule} from "../user/user.module";
 import {FileService} from "../file/file.service";
 import {User, UserSchema} from "../user/user.schema";
+import {AuthModule} from "../auth/auth.module";
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import {User, UserSchema} from "../user/user.schema";
       MongooseModule.forFeature([{name: User.name, schema: UserSchema}]),
       forwardRef(() => TagModule),
       forwardRef(() => UserModule),
+      AuthModule
   ],
   providers: [PostService, FileService],
   controllers: [PostController]

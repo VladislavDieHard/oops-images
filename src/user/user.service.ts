@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import {CreateUserDto} from "./dto/create-user.dto";
 import {User, UserDocument} from "./user.schema";
 import {InjectModel} from "@nestjs/mongoose";
@@ -24,23 +24,33 @@ export class UserService {
     }
 
     async getUsers(): Promise<User[]> {
-        return this.userModel.find();
+        return this.userModel.find({},{password: 0});
     }
 
     async getUserById(id): Promise<User> {
-        return this.userModel.findById(id);
+        return this.userModel.findById(id, {password: 0}).populate('posts');
     }
 
     async getUserByName(username): Promise<User> {
-        return this.userModel.findOne({username: username});
+        const user = await this.userModel.findOne({username: username});
+        if (user !== null) {
+            return user;
+        }
+        throw new HttpException({message: 'Пользователь с таким именем не найден'}, HttpStatus.NOT_FOUND);
     }
 
     async createUser(dto: CreateUserDto, image): Promise<User> {
-        dto.password = await bcrypt.hash(dto.password, +process.env.SALT_ROUNDS);
-        const user = await this.userModel.create({...dto});
-        user.avatarUrl = this.fileService.saveFiles(FileType.IMAGE, FileDescription.AVATAR, image, user.username).join();
-        await user.save();
-        return user;
+        const candidate = await this.userModel.find({username: dto.username});
+
+        if (candidate.length > 0) {
+            throw new HttpException('Пользователь с таким именем уже существует', HttpStatus.BAD_REQUEST);
+        } else {
+            dto.password = await bcrypt.hash(dto.password, +process.env.SALT_ROUNDS);
+            const user = await this.userModel.create({...dto});
+            user.avatarUrl = this.fileService.saveFiles(FileType.IMAGE, FileDescription.AVATAR, image, user.username).join();
+            await user.save();
+            return user;
+        }
     }
 
     async deleteUser(id: ObjectId): Promise<ObjectId> {

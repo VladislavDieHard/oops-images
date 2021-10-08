@@ -13,16 +13,6 @@ export class PostService {
                 private fileService: FileService
     ) {}
 
-    private static deletePostFromUser(posts, deletePost) {
-        const newPostsArr = [];
-        posts.forEach((post) => {
-            if (post !== deletePost) {
-                newPostsArr.push(post);
-            }
-        });
-        return newPostsArr
-    }
-
     getPosts() {
         return this.postModel.find();
     }
@@ -49,11 +39,9 @@ export class PostService {
     }
 
     async deletePost(id) {
-        const post = await this.postModel.findByIdAndDelete(id);
+        const post = await this.postModel.findByIdAndDelete(id)
         this.fileService.removeFile(post.images);
-        const user = await this.userModel.findById(post.author);
-        user.posts = [...PostService.deletePostFromUser(user.posts, post._id)];
-        user.save();
+        const user = await this.userModel.findByIdAndUpdate(post.author, {$pull: {posts: post._id}});
         return post._id;
     }
 }

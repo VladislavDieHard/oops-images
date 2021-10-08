@@ -13,7 +13,9 @@ import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
-      ServeStaticModule.forRoot({rootPath: path.resolve(__dirname, 'static')}),
+      ServeStaticModule.forRoot({
+          rootPath: path.resolve(__dirname, 'static')
+      }),
       ConfigModule.forRoot({
           envFilePath: '.env'
       }),

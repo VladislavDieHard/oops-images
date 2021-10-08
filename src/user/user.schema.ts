@@ -17,6 +17,9 @@ export class User {
     @Prop()
     avatarUrl: string;
 
+    // @Prop({type: [{type: mongoose.Schema.Types.ObjectId, ref: 'Post'}]})
+    // role: Role[];
+
     @Prop({type: [{type: mongoose.Schema.Types.ObjectId, ref: 'Post'}]})
     posts: Post[];
 }
